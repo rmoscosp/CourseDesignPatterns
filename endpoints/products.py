@@ -3,8 +3,9 @@ import json
 from flask import request
 from utils.database_connection import DatabaseConnection
 
-def is_valid_token(token):
-    return token == 'abcd1234'
+def is_valid_token(token: str) -> bool:
+    token = token.strip() 
+    return token == 'abcd12345'
 
 class ProductsResource(Resource):
     def __init__(self):
@@ -24,7 +25,7 @@ class ProductsResource(Resource):
             return { 'message': 'Unauthorized acces token not found'}, 401
 
         if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
+           return { 'message': 'Unauthorized invalid token RRR'}, 401
 
         if category_filter:
             filtered_products = [p for p in self.products if p['category'].lower() == category_filter.lower()]
