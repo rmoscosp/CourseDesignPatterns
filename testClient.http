@@ -1,0 +1,61 @@
+### REST Client collection para la extensión REST Client de VS Code
+### Uso: realiza la petición `POST /auth` para obtener el token y luego
+### usa ese token en el header Authorization (o copia uno de los tokens de ejemplo).
+
+@hostname = http://127.0.0.1
+@port = 5000
+@base_url = {{hostname}}:{{port}}
+
+# Nota sobre tokens:
+# - El endpoint /auth devuelve el token 'abcd12345' para las credenciales correctas.
+# - El endpoint de productos en este repo hace una comprobación hardcoded distinta ('abcd1234').
+#   Si una petición falla por 401, prueba con ambos tokens.
+
+@token_from_auth = abcd12345
+@token_example_auth = abcd12345
+@token_example_products = abcd1234
+
+### Obtener token (POST /auth)
+POST {{base_url}}/auth
+Content-Type: application/json
+
+{
+    "username": "student",
+    "password": "desingp"
+}
+
+###
+# After running the request above, copy the returned `token` value into the variable
+# `@token_from_auth` at the top of this file (or just use `@token_example_auth`).
+
+### Listar todos los productos (usar token)
+GET {{base_url}}/products
+Authorization:{{token_from_auth}}
+
+###
+# Alternativa (usar token devuelto por /auth automáticamente si no quieres copiar):
+GET {{base_url}}/products
+Authorization:{{token_example_auth}}
+
+### Obtener productos por categoría
+GET {{base_url}}/products?category=electronics
+Authorization: Bearer {{token_from_auth}}
+
+### Obtener producto por id
+GET {{base_url}}/products/1
+Authorization: Bearer {{token_from_auth}}
+
+### Crear producto (POST /products)
+POST {{base_url}}/products
+Content-Type: application/json
+Authorization: Bearer {{token_from_auth}}
+
+{
+    "name": "Nuevo Producto desde REST Client",
+    "category": "test",
+    "price": 19.9
+}
+
+### Prueba rápida usando token que el backend espera (si hay mismatch)
+GET {{base_url}}/products
+Authorization: Bearer {{token_example_products}}
