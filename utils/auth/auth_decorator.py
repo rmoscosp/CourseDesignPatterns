@@ -5,7 +5,7 @@ Implementa el Decorator Pattern para centralizar la lógica de autenticación.
 
 from functools import wraps
 from flask import request
-from config.auth_config import AuthConfig
+from utils.auth.auth_config import AuthConfig
 
 def token_required(f):
     """
