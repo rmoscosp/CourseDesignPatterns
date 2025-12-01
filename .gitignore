@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtualenv
+venv/
+ENV/
+.env/
+.envrc
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database/JSON
+*.sqlite3
+*.db
+*.db-journal
+*.json
+!db.json
+!db_bck.json
+
+# Test/coverage
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+
+# REST Client
+*.http
+
+# Others
+*.bak
+*.swp
+*.tmp
+
+# Ignore secrets
+*.env
