@@ -1,90 +1,114 @@
-from flask import Flask, request
-from flask_restful import Resource, Api, reqparse
-import json
-from utils.database_connection import DatabaseConnection
+"""
+Endpoint de categorías refactorizado.
+Utiliza Service Layer, Repository Pattern y Decorator Pattern.
+"""
 
-def is_valid_token(token):
-    return token == 'abcd1234'
+from flask_restful import Resource, reqparse
+from utils.auth.auth_decorator import token_required
+from services.category_service import CategoryService
+
 
 class CategoriesResource(Resource):
+    """
+    Resource para operaciones CRUD de categorías.
+    Ahora con separación de responsabilidades y código más limpio.
+    """
+    
     def __init__(self):
-
-        self.db = DatabaseConnection('db.json')
-        self.db.connect()
-
-        self.categories_data = self.db.get_categories()
+        """Inicializa el resource con su servicio."""
+        self.service = CategoryService()
         self.parser = reqparse.RequestParser()
-
+    
+    @token_required
     def get(self, category_id=None):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        if category_id is not None:
-            category = next((p for p in self.categories_data if p['id'] == category_id), None)
-            if category is not None:
-                return category
-            else:
-                return {'message': 'Category not found'}, 404
-         
-        return self.categories_data 
-
-    def post(self):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        self.parser.add_argument('name', type=str, required=True, help='Name of the category')
- 
-        args = self.parser.parse_args()
-        print("*****",args)
-        new_category_name = args['name']
-        if not new_category_name:
-            return {'message': 'Category name is required'}, 400
-
-        categories = self.categories_data
-        if new_category_name in categories:
-            return {'message': 'Category already exists'}, 400
-
-        new_category = {
-                'id': len(self.categories_data) + 1,
-                'name': new_category_name
-        }
-
-        categories.append(new_category)
-        self.categories_data = categories
+        """
+        Obtiene categorías.
         
-        self.db.add_category(new_category)
-
-        return {'message': 'Category added successfully'}, 201
-
+        Args:
+            category_id: ID de la categoría (opcional)
+            
+        Returns:
+            - Si category_id: categoría específica o 404
+            - Sin parámetros: todas las categorías
+        """
+        try:
+            # Categoría específica por ID
+            if category_id is not None:
+                category = self.service.get_category_by_id(category_id)
+                if category:
+                    return category, 200
+                else:
+                    return {'message': 'Category not found'}, 404
+            
+            # Todas las categorías
+            return self.service.get_all_categories(), 200
+            
+        except ValueError as e:
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': f'Internal server error: {str(e)}'}, 500
+    
+    @token_required
+    def post(self):
+        """
+        Crea una nueva categoría.
+        
+        Body:
+            name: Nombre de la categoría (requerido)
+            
+        Returns:
+            201: Categoría creada exitosamente
+            400: Datos inválidos o categoría ya existe
+        """
+        try:
+            # Configurar parser
+            self.parser.add_argument('name', type=str, required=True, 
+                                    help='Name of the category is required')
+            
+            args = self.parser.parse_args()
+            
+            # Crear categoría usando el servicio
+            new_category = self.service.create_category(name=args['name'])
+            
+            return {
+                'message': 'Category added successfully',
+                'category': new_category
+            }, 201
+            
+        except ValueError as e:
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': f'Internal server error: {str(e)}'}, 500
+    
+    @token_required
     def delete(self):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        args = self.parser.parse_args()
-        self.parser.add_argument('name', type=str, required=True, help='Name of the category')
-        args = self.parser.parse_args()
-        category_name = args['name']
- 
-        if not category_name:
-            return {'message': 'Category name is required'}, 400
-
-        category_to_remove = next((cat for cat in self.categories_data if cat["name"] == category_name), None)
-
-        if category_to_remove is None:
-            return {'message': 'Category not found'}, 404
-        else:
-            categories = [cat for cat in self.categories_data if cat["name"] != category_to_remove]
-            self.categories_data = categories
-            self.db.remove_category(category_name)
-
+        """
+        Elimina una categoría.
+        
+        Body:
+            name: Nombre de la categoría a eliminar (requerido)
+            
+        Returns:
+            200: Categoría eliminada exitosamente
+            400: Datos inválidos
+            404: Categoría no encontrada
+        """
+        try:
+            # Configurar parser
+            self.parser.add_argument('name', type=str, required=True, 
+                                    help='Name of the category is required')
+            
+            args = self.parser.parse_args()
+            
+            # Eliminar categoría usando el servicio
+            self.service.delete_category(name=args['name'])
+            
             return {'message': 'Category removed successfully'}, 200
-
+            
+        except ValueError as e:
+            # Si la categoría no existe, retornar 404
+            if "no encontrada" in str(e).lower() or "not found" in str(e).lower():
+                return {'message': str(e)}, 404
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': f'Internal server error: {str(e)}'}, 500
