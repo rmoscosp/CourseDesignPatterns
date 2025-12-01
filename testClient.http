@@ -38,17 +38,17 @@ GET {{base_url}}/products
 Authorization:{{token_example_auth}}
 
 ### Obtener productos por categoría
-GET {{base_url}}/products?category=electronics
-Authorization: Bearer {{token_from_auth}}
+GET {{base_url}}/products?category=men
+Authorization:{{token_from_auth}}
 
 ### Obtener producto por id
 GET {{base_url}}/products/1
-Authorization: Bearer {{token_from_auth}}
+Authorization:{{token_from_auth}}
 
 ### Crear producto (POST /products)
 POST {{base_url}}/products
 Content-Type: application/json
-Authorization: Bearer {{token_from_auth}}
+Authorization:{{token_from_auth}}
 
 {
     "name": "Nuevo Producto desde REST Client",
@@ -56,6 +56,3 @@ Authorization: Bearer {{token_from_auth}}
     "price": 19.9
 }
 
-### Prueba rápida usando token que el backend espera (si hay mismatch)
-GET {{base_url}}/products
-Authorization: Bearer {{token_example_products}}
