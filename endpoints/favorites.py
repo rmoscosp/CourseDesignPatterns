@@ -4,7 +4,7 @@ Utiliza Service Layer, Repository Pattern y Decorator Pattern.
 """
 
 from flask_restful import Resource, reqparse
-from decorators.auth_decorator import token_required
+from utils.auth.auth_decorator import token_required
 from services.favorite_service import FavoriteService
 
 
